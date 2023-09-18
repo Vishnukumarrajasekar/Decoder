@@ -1,5 +1,5 @@
 # DECODER
-A project to decode the genome of realistic building structures.
+A project to decode the genome of structures using shape grammar.
 
 This page documents the process and code related to the project. 
 
