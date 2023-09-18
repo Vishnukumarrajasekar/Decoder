@@ -1,5 +1,5 @@
 # DECODER
-A project to decode the genome of structures using shape grammar.
+A project to decode the genome of reticular structures using shape grammar.
 
 This page documents the process and code related to the project. 
 
@@ -10,3 +10,7 @@ This page documents the process and code related to the project.
 
 # ROADMAP
  - A broad structure of the project can be found [in this document](/Decoder-plugin_notes.md).
+
+# RESEARCH
+ - Shape Grammar
+ - ML Tools
