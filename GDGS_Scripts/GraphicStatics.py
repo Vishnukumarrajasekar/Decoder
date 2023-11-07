@@ -108,19 +108,17 @@ def ClosestPoint (org, points):
 
 # Closest point from a point cloud 
 def ClosestPoints (point, points, count=None):
-    """ final = []
-    sorted_points = sorted(points, key=lambda point: (org.distance_to_point(point), points.index(point)))
-    for i in range(count):
-        final.append(sorted_points[i])
-    return final     """
-    sorted_points = sorted(points, key=lambda point: point.distance_to_point(point))
+    
+    sorted_points = sorted(points, key=lambda p: (p.distance_to_point(point)))
+
+    sorted_indices = [points.index(p) for p in sorted_points]
     
     if count is None:
         # If 'count' is not specified, return all points (no limit)
-        return sorted_points
+        return sorted_points, sorted_indices
     else:
         # Return the specified number of closest points
-        return sorted_points[:count]
+        return sorted_points[:count], sorted_indices[:count]
 
 # CurveXCurves 
 def CurveXCurves (line, lines):
