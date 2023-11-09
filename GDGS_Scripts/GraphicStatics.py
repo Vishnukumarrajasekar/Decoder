@@ -335,11 +335,11 @@ def BiDirVectorIntersection (point1, vector1, point2, vector2):
     intersection = gh.CurveXCurve(ray1, ray2)[0] """
 
     move1 = Amplitude(vector1, 1000)
-    point1 = Move(point1, move1)[0]
+    point1 = Move(point1, move1)
     ray1 = LineSDL(point1, vector1, -2000)
 
     move2 = Amplitude(vector2, 1000)
-    point2 = Move(point2, move2)[0]
+    point2 = Move(point2, move2)
     ray2 = LineSDL(point2, vector2, -2000)
 
     intersection = intersection_line_line(ray1, ray2)[0]
