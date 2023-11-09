@@ -11,6 +11,15 @@ import Rules as rules
 import GraphicStatics as gs
 import RandomUtility as ru
 
+################################################################################
+# Custom Functions
+################################################################################
+
+#sort points 
+def SortPoints(points):
+    sorted_points = sorted(points, key=lambda pt: (pt.x, pt.y, pt.z))
+    return sorted_points
+
 ###############################################################################
 #  FORCE
 ################################################################################
@@ -113,13 +122,13 @@ class Assembly:
         for i in range(0, len(self.Nodes)):#first, sort support points
             SupportNodeList = []
             SupportNodeLabel = []
-            if self.Nodes[i].Type == 1: 
+            if self.Nodes[i].Type == 1: #if node type is support
                 SupportNodeList.append(self.Nodes[i])
                 SupportNodeLabel.append(i)
-            ###
-            SupportNodeSortOrder = SortPoints(SupportNodeList)[1] #this might create problems with the datatype
-            ###
+
             """ SupportNodeSortOrder = gh.SortPoints(SupportNodeList)[1] """
+            SupportNodeSortOrder = SortPoints(SupportNodeList)[1] #this might create problems with the datatype
+            
             SupportOrder = [SupportNodeLabel[j] for j in SupportNodeSortOrder]
             for k in SupportOrder:
                 SortOrder.append(k)
@@ -144,10 +153,10 @@ class Assembly:
             if self.Nodes[i].Type == 2: 
                 OtherNodeList.append(self.Nodes[i])
                 OtherNodeLabel.append(i)
-            ####
-            OtherNodeSortOrder = SortPoints(OtherNodeList)[1] #this might create problems with the datatype
-            ####
+            
             """ OtherNodeSortOrder = gh.SortPoints(OtherNodeList)[1] """
+            OtherNodeSortOrder = SortPoints(OtherNodeList)[1] #this might create problems with the datatype
+
             OtherOrder = [OtherNodeLabel[j] for j in OtherNodeSortOrder]
             for k in OtherOrder:
                 SortOrder.append(k)

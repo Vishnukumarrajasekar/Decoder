@@ -24,70 +24,76 @@ def SortPoints(points):
     sorted_points = sorted(points, key=lambda pt: (pt.x, pt.y, pt.z))
     return sorted_points
 
-# Amplitude from vector or line 
-def Amplitude(input, length):
-    if isinstance(input, Vector):
-        unit_vec = input.unitized()
-        scaled_vec = unit_vec.scaled(length)
-        return scaled_vec
+def Amplitude(inputs, length):
+    amps = []
+    for input in inputs:
+        if isinstance(input, Vector):
+            
+            scaled_vec = input.scaled(length)
+            amps.append(scaled_vec)
 
-    elif isinstance(input, Line):
-        vector = Vector.from_start_end(input.start, input.end)
-        unit_vec = vector.unitized()
-        scaled_vec = unit_vec.scaled(length)
-        return scaled_vec
+        elif isinstance(input, Line):
+            vector = Vector.from_start_end(input.start, input.end)
+            scaled_vec = vector.scaled(length)
+            amps.append(scaled_vec)
 
-    else:
-        return (type(input))
+        else:
+            amps.append(type(input))
+    return amps
 
-""" # Amplitude from vector 
-def Amplitude(vector, length):
-    unit_vec = vector.unitized()
-    scaled_vec = unit_vec.scaled(length)
-    return scaled_vec
 
-# Amplitude from line 
-def Amplitude(line, length):
-    vector = Vector.from_start_end(line.start, line.end)
-    unit_vec = vector.unitized()
-    scaled_vec = unit_vec.scaled(length)
-    return scaled_vec """
+def Move(input, vectors):
+    translations = []
+    for vector in vectors:
+        T = Translation.from_vector(vector)
+        if isinstance(input, Point):
+            point1 = Point.copy(input)
+            point1.transform(T)
+            translations.append(point1)
+        elif isinstance(input, Line):
+            line1 = Line.copy(input)
+            line1.transform(T)
+            translations.append(line1)
+        elif isinstance(input, Vector):
+            vector1 = Vector.copy(input)
+            vector1.transform(T)
+            translations.append(vector1)
+        elif isinstance(input, list):
+            for item in input:
+                if isinstance(item, Point):
+                    point1 = Point.copy(item)
+                    point1.transform(T)
+                    translations.append(point1)
+                elif isinstance(item, Line):
+                    line1 = Line.copy(item)
+                    line1.transform(T)
+                    translations.append(line1)
+                elif isinstance(item, Vector):
+                    vector1 = Vector.copy(item)
+                    vector1.transform(T)
+                    translations.append(vector1)
+        else:
+            translations.append(type(input))
+    return translations
 
-# Move point or line 
-def Move(input, vector):
-    T = Translation.from_vector(vector)
-    if isinstance(input, Point):
-        point1 = Point.copy(input)
-        point1.transform(T)
-        return point1
-    elif isinstance(input, Line):
-        line1 = Line.copy(input)
-        line1.transform(T)
-        return line1
-    elif isinstance(input, Vector):
-        vector1 = Vector.copy(input)
-        vector1.transform(T)
-        return vector1
-    else:
-        return type(input)
 
-""" def Move(point, vector):
-    T = Translation.from_vector(vector)
-    point1 = Point.copy(point)
-    point1.transform(T)
-    return point1
 
-def Move(line, vector):
-    T  = Translation.from_vector(vector)
-    line1 = Line.copy(line)
-    line1.transform(T)
-    return line1 """
+def LineSDL(points, vectors, length):
+    lines = []
+    # Check if points and vectors are lists or single objects
+    points = [points] if not isinstance(points, list) else points
+    vectors = [vectors] if not isinstance(vectors, list) else vectors
 
-def LineSDL(point,vector,length):
-    amp = Amplitude(vector,length)
-    moved_point = Move(point, amp)
-    line = Line(point, moved_point)   
-    return line
+    # Call Amplitude and Move functions
+    amp = Amplitude(vectors, length)
+    moved_points = Move(points, amp)
+
+    # Create lines
+    for point, moved_point in zip(points, moved_points):
+        line = Line(point, moved_point)
+        lines.append(line)
+    return lines
+
 
 def UnitZ(point):
     dup_vec = Vector.copy(point)
@@ -106,7 +112,7 @@ def ClosestPoint (org, points):
 
     return sorted_points[0]
 
-# Closest point from a point cloud 
+# Closest points from a point cloud 
 def ClosestPoints (point, points, count=None):
     
     sorted_points = sorted(points, key=lambda p: (p.distance_to_point(point)))
@@ -221,7 +227,7 @@ def GetLineOfAction (node):
     TempForces = GetTempForce(node)
     
     # Determine Line of Action
-    LOA = []
+    LOA = []                                         #This might cause an error
     for force in TempForces:
         """ circle = gh.Circle(node.Coordinate, 0.1)
         circle = gh.Scale(circle, node.Coordinate, 0.1)[0]
@@ -232,7 +238,7 @@ def GetLineOfAction (node):
         else:
             vec = Vector.copy(force.Line.direction)
             vec *= -1
-        LOA.append(vec)
+        LOA.append(vec)                              #This might cause an error
     return LOA
 
 def LineToVector (line):
@@ -267,8 +273,7 @@ def TransferMemberForce (force, nodecoordinate):
     """ TransferedForceLine = gh.Move(InitialForceLine, translation)[0]
     TransferedForceLine = gh.FlipCurve(TransferedForceLine)[0] """
     
-    T = Translation.from_vector(translation_vec)
-    TransferedForceLine = InitialForceLine.transform(T)
+    TransferedForceLine = Move(InitialForceLine, translation_vec)
     TransferedForceLine = Line(TransferedForceLine.end, TransferedForceLine.start)
     
     newforce = assembly.Force(TransferedForceLine, force.Type, force.Direction)
@@ -870,13 +875,13 @@ def GetClosestRayXRay (node, ray, listofrays):
         point = intersection_line_line(ray, rays)[0]
         if point == None:
             point = Point3d(10000,0,0)
-        intersections.append(point)
+        intersections.append(Point.from_data(point))
     
     """ closestintersection = gh.ClosestPoints(node.Coordinate, intersections) """
     closestintersection = ClosestPoints(node.Coordinate, intersections)
     closestintersectionindex = closestintersection[1][0] # indice of closest projections (point coordinate).
     
-    if closestintersection[1] == None or intersections[closestintersectionindex].X == 10000:
+    if closestintersection[1] == None or intersections[closestintersectionindex].x == 10000:
         return (None)
     
     else:   

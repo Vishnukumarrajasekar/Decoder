@@ -25,70 +25,76 @@ def SortPoints(points):
     sorted_points = sorted(points, key=lambda pt: (pt.x, pt.y, pt.z))
     return sorted_points
 
-# Amplitude from vector or line 
-def Amplitude(input, length):
-    if isinstance(input, Vector):
-        unit_vec = input.unitized()
-        scaled_vec = unit_vec.scaled(length)
-        return scaled_vec
+def Amplitude(inputs, length):
+    amps = []
+    for input in inputs:
+        if isinstance(input, Vector):
+            
+            scaled_vec = input.scaled(length)
+            amps.append(scaled_vec)
 
-    elif isinstance(input, Line):
-        vector = Vector.from_start_end(input.start, input.end)
-        unit_vec = vector.unitized()
-        scaled_vec = unit_vec.scaled(length)
-        return scaled_vec
+        elif isinstance(input, Line):
+            vector = Vector.from_start_end(input.start, input.end)
+            scaled_vec = vector.scaled(length)
+            amps.append(scaled_vec)
 
-    else:
-        return (type(input))
+        else:
+            amps.append(type(input))
+    return amps
 
-""" # Amplitude from vector 
-def Amplitude(vector, length):
-    unit_vec = vector.unitized()
-    scaled_vec = unit_vec.scaled(length)
-    return scaled_vec
 
-# Amplitude from line 
-def Amplitude(line, length):
-    vector = Vector.from_start_end(line.start, line.end)
-    unit_vec = vector.unitized()
-    scaled_vec = unit_vec.scaled(length)
-    return scaled_vec """
+def Move(input, vectors):
+    translations = []
+    for vector in vectors:
+        T = Translation.from_vector(vector)
+        if isinstance(input, Point):
+            point1 = Point.copy(input)
+            point1.transform(T)
+            translations.append(point1)
+        elif isinstance(input, Line):
+            line1 = Line.copy(input)
+            line1.transform(T)
+            translations.append(line1)
+        elif isinstance(input, Vector):
+            vector1 = Vector.copy(input)
+            vector1.transform(T)
+            translations.append(vector1)
+        elif isinstance(input, list):
+            for item in input:
+                if isinstance(item, Point):
+                    point1 = Point.copy(item)
+                    point1.transform(T)
+                    translations.append(point1)
+                elif isinstance(item, Line):
+                    line1 = Line.copy(item)
+                    line1.transform(T)
+                    translations.append(line1)
+                elif isinstance(item, Vector):
+                    vector1 = Vector.copy(item)
+                    vector1.transform(T)
+                    translations.append(vector1)
+        else:
+            translations.append(type(input))
+    return translations
 
-# Move point or line 
-def Move(input, vector):
-    T = Translation.from_vector(vector)
-    if isinstance(input, Point):
-        point1 = Point.copy(input)
-        point1.transform(T)
-        return point1
-    elif isinstance(input, Line):
-        line1 = Line.copy(input)
-        line1.transform(T)
-        return line1
-    elif isinstance(input, Vector):
-        vector1 = Vector.copy(input)
-        vector1.transform(T)
-        return vector1
-    else:
-        raise TypeError("Input must be a Point, Line or Vector and not {0}".format(type(input)))
 
-""" def Move(point, vector):
-    T = Translation.from_vector(vector)
-    point1 = Point.copy(point)
-    point1.transform(T)
-    return point1
 
-def Move(line, vector):
-    T  = Translation.from_vector(vector)
-    line1 = Line.copy(line)
-    line1.transform(T)
-    return line1 """
+def LineSDL(points, vectors, length):
+    lines = []
+    # Check if points and vectors are lists or single objects
+    points = [points] if not isinstance(points, list) else points
+    vectors = [vectors] if not isinstance(vectors, list) else vectors
 
-def LineSDL(point,vector,length):
-    amp = Amplitude(vector,length)
-    moved_point = Move(point, amp)
-    line = Line(point, moved_point)   
-    return line
+    # Call Amplitude and Move functions
+    amp = Amplitude(vectors, length)
+    moved_points = Move(points, amp)
+
+    # Create lines
+    for point, moved_point in zip(points, moved_points):
+        line = Line(point, moved_point)
+        lines.append(line)
+    return lines
+
 
 def UnitZ(point):
     dup_vec = Vector.copy(point)
@@ -107,7 +113,7 @@ def ClosestPoint (org, points):
 
     return sorted_points[0]
 
-# Closest point from a point cloud 
+# Closest points from a point cloud 
 def ClosestPoints (point, points, count=None):
     
     sorted_points = sorted(points, key=lambda p: (p.distance_to_point(point)))
@@ -128,6 +134,7 @@ def CurveXCurves (line, lines):
             point = intersection_line_line(line, l)[0]
             points.append(point)
     return points
+
 
 ################################################################################
 #  Rule Parameters
@@ -290,7 +297,8 @@ class Rule1(BaseRule):
             rotation1 = params[2]
             
             #Temp Force / Line of Action
-            LOA = gs.GetLineOfAction(node)[0]
+            """ LOA = gs.GetLineOfAction(node)[0] """
+            LOA = gs.GetLineOfAction(node)
             
             #Create Point... within reasonable bounds from LOA
             #amplitude1 = ru.MyRandom.Float (MinL, MaxL)
@@ -461,7 +469,8 @@ class Rule3(BaseRule):
             boundary = currentshape.Boundary
             
             # Temp Force / Line of Action
-            LOA = gs.GetLineOfAction(node)[0]
+            """ LOA = gs.GetLineOfAction(node)[0] """
+            LOA = gs.GetLineOfAction(node)
             
             # First Arm
             #amplitude1 = ru.MyRandom.Float (MinL, MaxL)
@@ -616,12 +625,11 @@ class Rule4(BaseRule):
             
             TempForce2 = gs.GetTempForce(node2)[0]
             """ node2forceamplitude = gh.Length(TempForce2.Line) """
-            node1forceamplitude = TempForce1.Line.length
+            node2forceamplitude = TempForce2.Line.length
             
             amplitudedifference = abs(node1forceamplitude-node2forceamplitude)
             newmemberforceamplitude = min(node1forceamplitude,node2forceamplitude) + amplitudedifference*factor
             
-            Vector.from_start_end
             # Distribute New Force to Nodes
             """ newforce1dir = gh.Vector2Pt(node2.Coordinate, node1.Coordinate)
             newforce1line = gh.LineSDL(node2.Coordinate, newforce1dir, newmemberforceamplitude) """
